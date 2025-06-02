@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beregne.no - Din personlige kalkulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
+            line-height: 1.6;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 40px rgba(0,0,0,0.08);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem 1rem;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.bot {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .bot-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .bot .message-bubble {
+            background: #f7fafc;
+            color: #2d3748;
+            padding: 1rem 1.25rem;
+            border-radius: 18px;
+            border-top-left-radius: 4px;
+            display: inline-block;
+            max-width: 85%;
+        }
+
+        .user {
+            text-align: right;
+        }
+
+        .user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 1.25rem;
+            border-radius: 18px;
+            border-top-right-radius: 4px;
+            display: inline-block;
+            max-width: 85%;
+            text-align: left;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .suggestion-chip {
+            background: white;
+            border: 1.5px solid #e2e8f0;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggestion-chip:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .sponsor-card {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 1px solid #fbbf24;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .sponsor-card .sponsor-name {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 0.25rem;
+        }
+
+        .sponsor-card .sponsor-message {
+            color: #78350f;
+            margin-bottom: 0.5rem;
+        }
+
+        .sponsor-card .sponsor-cta {
+            display: inline-block;
+            background: #92400e;
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .sponsor-card .sponsor-cta:hover {
+            background: #78350f;
+        }
+
+        .input-container {
+            padding: 1rem;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            background: #f7fafc;
+            padding: 0.75rem;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #667eea;
+        }
+
+        #messageInput {
+            flex: 1;
+            border: none;
+            background: none;
+            outline: none;
+            font-size: 1rem;
+            color: #2d3748;
+        }
+
+        #messageInput::placeholder {
+            color: #a0aec0;
+        }
+
+        #sendButton {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.1s;
+        }
+
+        #sendButton:hover {
+            transform: scale(1.05);
+        }
+
+        #sendButton:active {
+            transform: scale(0.95);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 0.3rem;
+            padding: 1rem;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #a0aec0;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 1.25rem;
+            }
+            
+            .bot .message-bubble,
+            .user .message-bubble {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <h1>Beregne.no</h1>
+            <p>Din personlige kalkulator for alt du lurer på</p>
+        </div>
+        
+        <div class="messages-container" id="messagesContainer">
+            <!-- Welcome message -->
+            <div class="message bot">
+                <div class="bot-avatar">B</div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        Hei! 👋 Jeg er din personlige beregningsassistent. 
+                        <br><br>
+                        Hva ønsker du å beregne i dag?
+                    </div>
+                    <div class="suggestions">
+                        <div class="suggestion-chip" onclick="sendSuggestion('Hvor mye kan jeg låne til bolig?')">
+                            🏠 Boliglån
+                        </div>
+                        <div class="suggestion-chip" onclick="sendSuggestion('Hva koster strømmen i dag?')">
+                            ⚡ Strømpris
+                        </div>
+                        <div class="suggestion-chip" onclick="sendSuggestion('Hva koster det å pusse opp badet?')">
+                            🔨 Oppussing
+                        </div>
+                        <div class="suggestion-chip" onclick="sendSuggestion('Lønner det seg med varmepumpe?')">
+                            💡 Energisparing
+                        </div>
+                        <div class="suggestion-chip" onclick="sendSuggestion('Hvor mange skruer trenger jeg til terrassen?')">
+                            🔧 Byggeprosjekt
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <div class="input-wrapper">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="Skriv ditt spørsmål her..."
+                    autocomplete="off"
+                >
+                <button id="sendButton" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const WEBHOOK_URL = 'https://househacker.app.n8n.cloud/webhook-test/chat';
+        const PARTNER_ID = window.location.hostname || 'beregne-no';
+        const sessionId = 'session-' + Math.random().toString(36).substr(2, 9);
+        
+        // Initialize
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        
+        // Enter key support
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // Send message function
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            // Clear input
+            messageInput.value = '';
+            
+            // Add user message
+            addMessage(message, 'user');
+            
+            // Show typing indicator
+            showTyping();
+            
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-partner-id': PARTNER_ID
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        sessionId: sessionId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Remove typing indicator
+                hideTyping();
+                
+                // Add bot response
+                const botResponse = data.output || data.response || 'Beklager, jeg fikk ikke svar fra serveren.';
+                addMessage(botResponse, 'bot');
+                
+                // Add sponsor if available
+                if (data.sponsor) {
+                    addSponsor(data.sponsor);
+                }
+                
+            } catch (error) {
+                hideTyping();
+                addMessage('Beklager, noe gikk galt. Vennligst prøv igjen senere.', 'bot');
+                console.error('Error:', error);
+            }
+        }
+        
+        // Send suggestion
+        function sendSuggestion(text) {
+            messageInput.value = text;
+            sendMessage();
+        }
+        
+        // Add message to chat
+        function addMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            if (type === 'bot') {
+                messageDiv.innerHTML = `
+                    <div class="bot-avatar">B</div>
+                    <div class="message-content">
+                        <div class="message-bubble">${formatMessage(text)}</div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="message-bubble">${formatMessage(text)}</div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        // Format message (convert newlines to <br>)
+        function formatMessage(text) {
+            return text.replace(/\n/g, '<br>');
+        }
+        
+        // Add sponsor card
+        function addSponsor(sponsor) {
+            const lastBotMessage = messagesContainer.querySelector('.message.bot:last-child .message-content');
+            if (!lastBotMessage) return;
+            
+            const sponsorDiv = document.createElement('div');
+            sponsorDiv.className = 'sponsor-card';
+            sponsorDiv.innerHTML = `
+                <div class="sponsor-name">${sponsor.name}</div>
+                <div class="sponsor-message">${sponsor.message}</div>
+                <a href="${sponsor.url || sponsor.cta?.url}" class="sponsor-cta" target="_blank">
+                    ${sponsor.cta?.text || 'Les mer'} →
+                </a>
+            `;
+            
+            lastBotMessage.appendChild(sponsorDiv);
+            scrollToBottom();
+        }
+        
+        // Typing indicator
+        let typingDiv = null;
+        
+        function showTyping() {
+            typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.innerHTML = `
+                <div class="bot-avatar">B</div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <div class="typing-indicator">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(typingDiv);
+            scrollToBottom();
+        }
+        
+        function hideTyping() {
+            if (typingDiv) {
+                typingDiv.remove();
+                typingDiv = null;
+            }
+        }
+        
+        // Scroll to bottom
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Focus input on load
+        window.addEventListener('load', () => {
+            messageInput.focus();
+        });
+    </script>
+</body>
+</html>
